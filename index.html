@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhimHay24h - Xem Phim Online Full HD</title>
 <link rel="icon" href="https://i.pinimg.com/736x/88/57/53/8857532b188a8a75323e77c49cd266ee.jpg">
-<script src="https://pl30169604.effectivecpmnetwork.com/ff/9e/e3/ff9ee324fe786c36195495e07406418b.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -25,9 +24,126 @@
     color: #fff;
     font-family: "Segoe UI", Arial, sans-serif;
     min-height: 100vh;
+    overflow: hidden;
   }
 
   a { color: inherit; text-decoration: none; }
+
+  /* ===== OVERLAY 18+ ===== */
+  .overlay-18 {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeOverlay 0.5s ease;
+  }
+
+  @keyframes fadeOverlay {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .overlay-18.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .overlay-18 .box {
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 48px 40px 40px;
+    max-width: 440px;
+    width: 92%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+    animation: popBox 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes popBox {
+    0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .overlay-18 .icon-18 {
+    font-size: 52px;
+    background: var(--red);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-weight: 900;
+    box-shadow: 0 0 40px rgba(229,9,20,0.3);
+  }
+
+  .overlay-18 h2 {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .overlay-18 .sub {
+    color: #aaa;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .overlay-18 .btn-group {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .overlay-18 .btn-yes {
+    background: linear-gradient(135deg, var(--red-bright), #b0060f);
+    border: none;
+    color: #fff;
+    padding: 14px 44px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 24px rgba(229,9,20,0.4);
+  }
+
+  .overlay-18 .btn-yes:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 32px rgba(229,9,20,0.6);
+  }
+
+  .overlay-18 .btn-no {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    color: #aaa;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .overlay-18 .btn-no:hover {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  .overlay-18 .warning-text {
+    font-size: 12px;
+    color: #555;
+    margin-top: 20px;
+  }
 
   /* ===== NAVBAR ===== */
   .navbar {
@@ -507,10 +623,25 @@
     .meta-row, .tags, .action-row { justify-content: center; }
     .hero { height: 260px; }
     .comment-reply { margin-left: 20px; }
+    .overlay-18 .box { padding: 32px 20px; }
   }
 </style>
 </head>
 <body>
+
+  <!-- ===== OVERLAY 18+ ===== -->
+  <div class="overlay-18" id="ageOverlay">
+    <div class="box">
+      <div class="icon-18">18+</div>
+      <h2>Xác nhận độ tuổi</h2>
+      <p class="sub">Nội dung này chỉ dành cho người từ 18 tuổi trở lên. Vui lòng xác nhận bạn đã đủ tuổi.</p>
+      <div class="btn-group">
+        <button class="btn-yes" id="btnYes">Tôi đã đủ 18+</button>
+        <button class="btn-no" id="btnNo">Chưa đủ 18</button>
+      </div>
+      <p class="warning-text">⚠️ Nếu bạn chưa đủ 18, bạn sẽ được chuyển đến Google</p>
+    </div>
+  </div>
 
   <!-- ===== NAVBAR ===== -->
   <nav class="navbar">
@@ -530,7 +661,7 @@
 
   <!-- ===== HERO BACKDROP ===== -->
   <div class="hero">
-    <img src="https://media.discordapp.net/attachments/1500142819338354709/1522203102491443281/350597.webp?ex=6a479d9c&is=6a464c1c&hm=5cf54cfea00dcaab1d13dbd027526f5c1df5a8805d5c3cf5be3732a95a2a573d&=&format=webp&width=663&height=968" alt="backdrop">
+    <img src="https://media.discordapp.net/attachments/1500142819338354709/1522204373902692352/350604.jpeg?ex=6a479ecb&is=6a464d4b&hm=b775fd52c706e9a1ce6425887da7c241358fe0fd6639c77f6425389c6e6443c7&=&format=webp&width=1049&height=968" alt="backdrop">
   </div>
 
   <!-- ===== MAIN INFO ===== -->
@@ -538,7 +669,7 @@
     <div class="poster-col">
       <div class="poster-wrap">
         <span class="badge">HD 1080p</span>
-        <img src="https://media.discordapp.net/attachments/1500142819338354709/1522203102491443281/350597.webp?ex=6a479d9c&is=6a464c1c&hm=5cf54cfea00dcaab1d13dbd027526f5c1df5a8805d5c3cf5be3732a95a2a573d&=&format=webp&width=663&height=968" alt="poster">
+        <img src="https://media.discordapp.net/attachments/1500142819338354709/1522204373902692352/350604.jpeg?ex=6a479ecb&is=6a464d4b&hm=b775fd52c706e9a1ce6425887da7c241358fe0fd6639c77f6425389c6e6443c7&=&format=webp&width=1049&height=968" alt="poster">
         <span class="rating-badge">★ 8.7</span>
       </div>
     </div>
@@ -620,11 +751,25 @@
   <!-- ===== FOOTER ===== -->
   <footer>
     <div class="f-logo">Phim<span>Hay24h</span></div>
-    <p>© 2026 PhimHay24h. Trang web giải trí, xem phim online miễn phí.</p>
+    <p>© 2026 PhimHay24h | Đây chỉ là website hư cấu mọi thứ trong website đều không phải là sự thật và được tạo bởi AI.</p>
   </footer>
 
 <script>
-  // Hạt sáng bay lên nền
+  // ===== XỬ LÝ OVERLAY 18+ =====
+  const overlay = document.getElementById('ageOverlay');
+  const btnYes = document.getElementById('btnYes');
+  const btnNo = document.getElementById('btnNo');
+
+  btnYes.addEventListener('click', () => {
+    overlay.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  });
+
+  btnNo.addEventListener('click', () => {
+    window.location.href = 'https://www.google.com';
+  });
+
+  // ===== Hạt sáng bay lên nền =====
   for (let i = 0; i < 24; i++) {
     const p = document.createElement('div');
     p.className = 'particle';
@@ -634,7 +779,7 @@
     document.body.appendChild(p);
   }
 
-  // Server tab switch (giả lập, chỉ đổi trạng thái active)
+  // ===== Server tab switch =====
   document.querySelectorAll('.server-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
@@ -642,7 +787,7 @@
     });
   });
 
-  // ===== Bình luận / tranh luận phim (giả lập, chỉ chạy phía client) =====
+  // ===== Bình luận =====
   const AVATAR_URL = "https://i.pinimg.com/736x/88/57/53/8857532b188a8a75323e77c49cd266ee.jpg";
 
   const seedComments = [

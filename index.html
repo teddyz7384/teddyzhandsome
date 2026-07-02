@@ -407,49 +407,6 @@
     border-radius: 2px;
   }
 
-  .comment-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-
-  .comment-box textarea {
-    width: 100%;
-    resize: vertical;
-    min-height: 70px;
-    background: #1c1c1c;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 13.5px;
-    font-family: inherit;
-    padding: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .comment-box textarea:focus { border-color: var(--red); }
-
-  .comment-box-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-  }
-
-  .comment-submit {
-    background: var(--red);
-    color: #fff;
-    border: none;
-    padding: 9px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-  }
-  .comment-submit:hover { background: var(--red-bright); transform: translateY(-1px); }
-
   .comment-list {
     display: flex;
     flex-direction: column;
@@ -476,13 +433,9 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--red-bright), #7a0710);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
+    object-fit: cover;
     flex-shrink: 0;
+    border: 1px solid var(--border);
   }
 
   .comment-meta { display: flex; flex-direction: column; }
@@ -652,13 +605,6 @@
   <div class="section">
     <div class="section-title">Bình luận & tranh luận về phim</div>
 
-    <div class="comment-box">
-      <textarea id="commentInput" placeholder="Chia sẻ cảm nhận hoặc tranh luận về bộ phim này..."></textarea>
-      <div class="comment-box-footer">
-        <button class="comment-submit" id="submitComment">Gửi bình luận</button>
-      </div>
-    </div>
-
     <div class="comment-list" id="commentList"></div>
   </div>
 
@@ -702,24 +648,36 @@
   });
 
   // ===== Bình luận / tranh luận phim (giả lập, chỉ chạy phía client) =====
+  const AVATAR_URL = "https://i.pinimg.com/736x/88/57/53/8857532b188a8a75323e77c49cd266ee.jpg";
+
   const seedComments = [
     { user: "MinhAnh_99", text: "Đoạn kết hơi vội, nhưng diễn xuất nam chính xuất sắc thật sự.", time: "2 giờ trước", likes: 24,
       reply: { user: "quangkhoiii", text: "Đồng ý, mình nghĩ nếu kéo dài thêm 15 phút nữa sẽ trọn vẹn hơn." } },
     { user: "phimthu_review", text: "Nhạc phim quá hay, riêng OST đã đáng để xem rồi.", time: "5 giờ trước", likes: 41,
       reply: { user: "haNii", text: "Ủa gu nhạc phim giống mình ghê, coi 2 lần chỉ vì nhạc =)))" } },
     { user: "tranthang_1998", text: "Cá nhân thấy plot khá dự đoán được, không có gì bất ngờ lắm.", time: "1 ngày trước", likes: 12,
-      reply: { user: "linhchi.vn", text: "Mình lại thấy twist ở giữa phim ổn áp, chắc do gu mỗi người khác nhau." } }
+      reply: { user: "linhchi.vn", text: "Mình lại thấy twist ở giữa phim ổn áp, chắc do gu mỗi người khác nhau." } },
+    { user: "duy.nguyenn", text: "Quay cảnh học đường đẹp thật, làm nhớ lại thời cấp 3 ghê.", time: "1 ngày trước", likes: 33,
+      reply: { user: "thao_pham", text: "Y chang, mỗi cảnh sân trường là mình rưng rưng =))" } },
+    { user: "khanhly_off", text: "Nữ chính diễn hơi gượng ở nửa đầu, nhưng càng về sau càng ổn.", time: "2 ngày trước", likes: 18 },
+    { user: "vuminh_2000", text: "Nhạc nền hợp cảnh vãi, đặc biệt đoạn cao trào giữa phim.", time: "2 ngày trước", likes: 27,
+      reply: { user: "anhthu.tv", text: "Đoạn đó mình tua đi tua lại nghe nhạc luôn ấy." } },
+    { user: "hoangbaoo", text: "Kịch bản ổn nhưng nhịp phim hơi chậm ở giữa, dễ buồn ngủ.", time: "3 ngày trước", likes: 9 },
+    { user: "ngocanh_991", text: "Thông điệp phim sâu sắc, xem xong suy nghĩ mãi luôn.", time: "3 ngày trước", likes: 52,
+      reply: { user: "phatdat.lee", text: "Đồng cảm, nhất là đoạn thoại cuối giữa hai nhân vật chính." } },
+    { user: "quynhnhu.x", text: "Mình thấy twist cuối hơi gượng ép, không thuyết phục lắm.", time: "4 ngày trước", likes: 15,
+      reply: { user: "minhkhoa_98", text: "Ừ đúng, cảm giác đạo diễn muốn nhét thêm bất ngờ nhưng không ăn khớp mạch phim." } },
+    { user: "lam.tran23", text: "Bối cảnh quay đẹp xuất sắc, màu phim rất chill.", time: "5 ngày trước", likes: 21 }
   ];
 
   const commentList = document.getElementById('commentList');
-  const initials = name => name.trim().charAt(0).toUpperCase();
 
   function renderComment({ user, text, time, likes, reply }) {
     const card = document.createElement('div');
     card.className = 'comment-card';
     card.innerHTML = `
       <div class="comment-head">
-        <div class="comment-avatar">${initials(user)}</div>
+        <img class="comment-avatar" src="${AVATAR_URL}" alt="${user}">
         <div class="comment-meta">
           <span class="comment-user">${user}</span>
           <span class="comment-time">${time}</span>
@@ -733,7 +691,7 @@
       ${reply ? `
       <div class="comment-reply">
         <div class="comment-head">
-          <div class="comment-avatar" style="width:28px;height:28px;font-size:11px;">${initials(reply.user)}</div>
+          <img class="comment-avatar" style="width:28px;height:28px;" src="${AVATAR_URL}" alt="${reply.user}">
           <div class="comment-meta">
             <span class="comment-user" style="font-size:12.5px;">${reply.user}</span>
           </div>
@@ -745,15 +703,6 @@
   }
 
   seedComments.forEach(c => commentList.appendChild(renderComment(c)));
-
-  document.getElementById('submitComment').addEventListener('click', () => {
-    const input = document.getElementById('commentInput');
-    const value = input.value.trim();
-    if (!value) return;
-    const newComment = { user: "Bạn", text: value, time: "Vừa xong", likes: 0 };
-    commentList.prepend(renderComment(newComment));
-    input.value = '';
-  });
 </script>
 
 </body>

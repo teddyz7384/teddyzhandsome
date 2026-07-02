@@ -3,55 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xem Phim Online</title>
+<title>PhimHay24h - Xem Phim Online Vietsub Full HD</title>
+<link rel="icon" href="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg">
 <script src="https://pl30169604.effectivecpmnetwork.com/ff/9e/e3/ff9ee324fe786c36195495e07406418b.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  :root {
+    --red: #e50914;
+    --red-bright: #ff1f2e;
+    --bg: #0a0a0a;
+    --card: #161616;
+    --border: #262626;
+    --text-dim: #999;
+  }
+
+  html { scroll-behavior: smooth; }
+
   body {
-    background: radial-gradient(circle at top, #1b1b1b, #050505 70%);
+    background: var(--bg);
     color: #fff;
     font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ===== NAVBAR ===== */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    overflow: hidden;
-    position: relative;
+    justify-content: space-between;
+    padding: 14px 5%;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    animation: fadeDown 0.6s ease;
   }
 
-  .particle {
+  @keyframes fadeDown {
+    0% { opacity: 0; transform: translateY(-16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .logo span { color: var(--red); }
+
+  .nav-links {
+    display: flex;
+    gap: 26px;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  .nav-links a { position: relative; padding: 4px 0; transition: color 0.2s; }
+  .nav-links a:hover { color: #fff; }
+  .nav-links a::after {
+    content: "";
     position: absolute;
-    bottom: -10px;
-    width: 4px;
-    height: 4px;
-    background: #e50914;
-    border-radius: 50%;
-    opacity: 0.6;
-    animation: float 8s linear infinite;
+    left: 0; bottom: -4px;
+    width: 0; height: 2px;
+    background: var(--red);
+    transition: width 0.25s ease;
   }
+  .nav-links a:hover::after { width: 100%; }
 
-  @keyframes float {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    10% { opacity: 0.8; }
-    100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    gap: 8px;
+    width: 200px;
+    transition: border-color 0.2s;
   }
+  .search-box:focus-within { border-color: var(--red); }
+  .search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 13px;
+    width: 100%;
+  }
+  .search-box svg { flex-shrink: 0; opacity: 0.6; }
 
-  .movie-card {
-    background: linear-gradient(160deg, #1a1a1a, #101010);
-    border-radius: 18px;
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    width: 100%;
+    height: 380px;
     overflow: hidden;
-    width: 360px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 20px 50px rgba(0,0,0,0.7);
+  }
+
+  .hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    filter: blur(2px) brightness(0.55);
+    transform: scale(1.05);
+    animation: heroZoom 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes heroZoom {
+    0% { transform: scale(1.05); }
+    100% { transform: scale(1.15); }
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg) 5%, rgba(10,10,10,0.2) 60%, rgba(10,10,10,0.6) 100%);
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .container {
+    max-width: 1100px;
+    margin: -220px auto 0;
+    padding: 0 5% 60px;
     position: relative;
     z-index: 2;
-    animation: cardIn 0.7s cubic-bezier(.2,.9,.3,1.3);
-    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
   }
 
-  .movie-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 0 0 1px rgba(229,9,20,0.4), 0 30px 60px rgba(229,9,20,0.25);
+  .poster-col {
+    flex-shrink: 0;
+    width: 260px;
+    animation: cardIn 0.7s cubic-bezier(.2,.9,.3,1.3);
   }
 
   @keyframes cardIn {
@@ -61,35 +156,29 @@
 
   .poster-wrap {
     position: relative;
+    border-radius: 14px;
     overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: transform 0.3s ease;
   }
+  .poster-wrap:hover { transform: translateY(-6px); }
 
   .poster-wrap img {
     width: 100%;
-    height: 480px;
-    object-fit: cover;
     display: block;
+    aspect-ratio: 2/3;
+    object-fit: cover;
     transition: transform 0.6s ease;
   }
-
-  .movie-card:hover .poster-wrap img {
-    transform: scale(1.08);
-  }
-
-  .poster-wrap::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.05) 40%);
-  }
+  .poster-wrap:hover img { transform: scale(1.08); }
 
   .badge {
     position: absolute;
-    top: 14px;
-    left: 14px;
-    background: #e50914;
+    top: 12px;
+    left: 12px;
+    background: var(--red);
     color: #fff;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: bold;
     letter-spacing: 0.5px;
     padding: 5px 10px;
@@ -100,42 +189,108 @@
 
   @keyframes pulse {
     0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.08); opacity: 0.85; }
+    50% { transform: scale(1.07); opacity: 0.85; }
   }
 
-  .movie-info {
-    padding: 20px 18px 24px;
-    text-align: center;
+  .rating-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffd24d;
   }
 
-  .movie-info h2 {
-    font-size: 21px;
-    margin-bottom: 6px;
-    letter-spacing: 0.3px;
+  /* ===== INFO ===== */
+  .info-col {
+    flex: 1;
+    min-width: 280px;
+    padding-top: 100px;
+    animation: fadeUp 0.8s ease 0.1s both;
   }
 
-  .movie-info p {
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(24px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .title-main {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+
+  .title-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .tag {
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    color: #ccc;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
     font-size: 13px;
-    color: #999;
+    color: var(--text-dim);
     margin-bottom: 20px;
+  }
+  .meta-row b { color: #fff; }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #ccc;
+    max-width: 640px;
+    margin-bottom: 26px;
+  }
+
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
   }
 
   .watch-btn {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #ff1f2e, #b0060f);
+    gap: 10px;
+    background: linear-gradient(135deg, var(--red-bright), #b0060f);
     color: #fff;
     border: none;
-    padding: 13px 30px;
+    padding: 15px 34px;
     font-size: 16px;
     font-weight: bold;
     border-radius: 10px;
     cursor: pointer;
-    text-decoration: none;
     overflow: hidden;
-    box-shadow: 0 6px 20px rgba(229,9,20,0.4);
+    box-shadow: 0 8px 24px rgba(229,9,20,0.45);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
@@ -157,115 +312,347 @@
     100% { left: 130%; }
   }
 
-  .watch-btn:hover {
-    transform: scale(1.06);
-    box-shadow: 0 10px 28px rgba(229,9,20,0.6);
-  }
+  .watch-btn:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(229,9,20,0.65); }
+  .watch-btn:active { transform: scale(0.97); }
 
-  .watch-btn:active {
-    transform: scale(0.97);
-  }
-
-  .play-icon {
-    font-size: 14px;
-  }
-
-  /* ==== Khu vực quảng cáo ==== */
-  .ad-slot {
-    width: 360px;
-    background: #141414;
-    border: 1px dashed #333;
-    border-radius: 10px;
-    color: #666;
-    font-size: 12px;
-    text-align: center;
+  .icon-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #1c1c1c;
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    z-index: 2;
-    overflow: hidden;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
   }
+  .icon-btn:hover { background: #262626; transform: translateY(-2px); }
 
-  .ad-top {
-    width: 320px;
-    height: 50px;
-    margin-bottom: 14px;
+  /* server tabs */
+  .server-box {
+    margin-bottom: 10px;
   }
-
-  .ad-bottom {
-    width: 300px;
-    height: 250px;
-    margin-top: 14px;
+  .server-title {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
   }
-
-  .wrapper {
+  .server-list {
     display: flex;
-    flex-direction: column;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .server-btn {
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    color: #ddd;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .server-btn.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(229,9,20,0.4);
+  }
+  .server-btn:hover { border-color: var(--red); }
+
+  /* ===== AD SLOTS ===== */
+  .ad-slot {
+    background: #111;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
     align-items: center;
-    z-index: 2;
-    position: relative;
+    justify-content: center;
+    overflow: hidden;
+    margin: 26px auto;
+  }
+  .ad-top { width: 320px; height: 50px; }
+  .ad-mid { width: 300px; height: 250px; }
+
+  .ad-label {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #555;
+    margin: -18px 0 6px;
+  }
+
+  /* ===== SECTION: PHIM LIÊN QUAN ===== */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 5% 60px;
+  }
+
+  .section-title {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: "";
+    width: 4px;
+    height: 18px;
+    background: var(--red);
+    border-radius: 2px;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+
+  .related-card {
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid var(--border);
+  }
+  .related-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    border-color: #3a3a3a;
+  }
+  .related-card .thumb {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.85);
+    transition: filter 0.25s ease;
+  }
+  .related-card:hover .thumb { filter: saturate(1.1); }
+  .related-card .rc-info { padding: 8px 10px; }
+  .related-card .rc-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .related-card .rc-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 30px 5%;
+    text-align: center;
+    color: #555;
+    font-size: 12px;
+  }
+  footer .f-logo {
+    font-size: 16px;
+    font-weight: 800;
+    color: #777;
+    margin-bottom: 8px;
+  }
+  footer .f-logo span { color: var(--red); }
+
+  /* particles */
+  .particle {
+    position: fixed;
+    bottom: -10px;
+    width: 3px;
+    height: 3px;
+    background: var(--red);
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: float 9s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes float {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 0.7; }
+    100% { transform: translateY(-105vh); opacity: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .nav-links { display: none; }
+    .container { margin-top: -160px; flex-direction: column; align-items: center; }
+    .poster-col { width: 200px; }
+    .info-col { padding-top: 20px; text-align: center; }
+    .meta-row, .tags, .action-row { justify-content: center; }
+    .hero { height: 260px; }
   }
 </style>
 </head>
 <body>
 
-  <div class="wrapper">
-
-    <!-- Banner quảng cáo trên (320x50) -->
-    <div class="ad-slot ad-top">
-      <script>
-        atOptions = {
-          'key' : '78f50889437df01487b89214f98a40c8',
-          'format' : 'iframe',
-          'height' : 50,
-          'width' : 320,
-          'params' : {}
-        };
-      </script>
-      <script src="https://www.highperformanceformat.com/78f50889437df01487b89214f98a40c8/invoke.js"></script>
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="logo">Phim<span>Hay24h</span></div>
+    <div class="nav-links">
+      <a href="#">Trang chủ</a>
+      <a href="#">Phim lẻ</a>
+      <a href="#">Phim bộ</a>
+      <a href="#">Chủ đề</a>
+      <a href="#">Diễn viên</a>
     </div>
-
-    <div class="movie-card">
-      <div class="poster-wrap">
-        <span class="badge">HD • VIETSUB</span>
-        <img src="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg" alt="Movie Poster">
-      </div>
-      <div class="movie-info">
-        <h2>Xem Phim Full HD</h2>
-        <p>1080p • Không quảng cáo • Cập nhật mới nhất</p>
-        <a href="https://zyo.lol/tiniluvhih" class="watch-btn">
-          <span class="play-icon">▶</span> Xem Phim Ngay
-        </a>
-      </div>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Tìm phim...">
     </div>
+  </nav>
 
-    <!-- Banner quảng cáo dưới (300x250) -->
-    <div class="ad-slot ad-bottom">
-      <script>
-        atOptions = {
-          'key' : 'e7553be99957155984917a739cdbfbe0',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script src="https://www.highperformanceformat.com/e7553be99957155984917a739cdbfbe0/invoke.js"></script>
-    </div>
-
+  <!-- ===== HERO BACKDROP ===== -->
+  <div class="hero">
+    <img src="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg" alt="backdrop">
   </div>
 
+  <!-- ===== MAIN INFO ===== -->
+  <div class="container">
+    <div class="poster-col">
+      <div class="poster-wrap">
+        <span class="badge">HD • VIETSUB</span>
+        <img src="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg" alt="poster">
+        <span class="rating-badge">★ 8.7</span>
+      </div>
+    </div>
+
+    <div class="info-col">
+      <div class="title-sub">Bạn đang xem: Phim Lẻ • 2026</div>
+      <h1 class="title-main">Xem Phim Full HD Vietsub</h1>
+
+      <div class="tags">
+        <span class="tag">Tình Cảm</span>
+        <span class="tag">Tâm Lý</span>
+        <span class="tag">Chính Kịch</span>
+        <span class="tag">Học Đường</span>
+      </div>
+
+      <div class="meta-row">
+        <span>Thời lượng: <b>112 phút</b></span>
+        <span>Chất lượng: <b>Full HD 1080p</b></span>
+        <span>Ngôn ngữ: <b>Vietsub</b></span>
+        <span>Lượt xem: <b>2.4M</b></span>
+      </div>
+
+      <p class="description">
+        Một câu chuyện cảm động xoay quanh hành trình trưởng thành, tình bạn và những lựa chọn
+        thay đổi cả cuộc đời. Bộ phim mang đến trải nghiệm điện ảnh chất lượng cao với hình ảnh
+        sắc nét, âm thanh sống động, phụ đề Vietsub chuẩn xác — sẵn sàng phục vụ nhu cầu giải trí
+        của bạn mọi lúc mọi nơi.
+      </p>
+
+      <div class="server-box">
+        <div class="server-title">Chọn server phát:</div>
+        <div class="server-list">
+          <button class="server-btn active">Server #1</button>
+          <button class="server-btn">Server #2</button>
+          <button class="server-btn">Server #3 (Vietsub)</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <a href="https://zyo.lol/tiniluvhih" class="watch-btn">
+          ▶ Xem Phim Ngay
+        </a>
+        <div class="icon-btn" title="Yêu thích">♡</div>
+        <div class="icon-btn" title="Chia sẻ">↗</div>
+      </div>
+
+      <!-- Banner quảng cáo 320x50 -->
+      <div class="ad-slot ad-top">
+        <script>
+          atOptions = {
+            'key' : '78f50889437df01487b89214f98a40c8',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/78f50889437df01487b89214f98a40c8/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PHIM LIÊN QUAN ===== -->
+  <div class="section">
+    <div class="section-title">Có thể bạn sẽ thích</div>
+    <div class="related-grid" id="relatedGrid"></div>
+  </div>
+
+  <!-- Banner quảng cáo 300x250 -->
+  <div class="ad-slot ad-mid">
+    <script>
+      atOptions = {
+        'key' : 'e7553be99957155984917a739cdbfbe0',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/e7553be99957155984917a739cdbfbe0/invoke.js"></script>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="f-logo">Phim<span>Hay24h</span></div>
+    <p>© 2026 PhimHay24h. Trang web giải trí, xem phim online miễn phí.</p>
+  </footer>
+
 <script>
-  const body = document.body;
-  for (let i = 0; i < 30; i++) {
+  // Hạt sáng bay lên nền
+  for (let i = 0; i < 24; i++) {
     const p = document.createElement('div');
     p.className = 'particle';
     p.style.left = Math.random() * 100 + 'vw';
-    p.style.animationDelay = (Math.random() * 8) + 's';
-    p.style.animationDuration = (6 + Math.random() * 6) + 's';
-    body.appendChild(p);
+    p.style.animationDelay = (Math.random() * 9) + 's';
+    p.style.animationDuration = (7 + Math.random() * 6) + 's';
+    document.body.appendChild(p);
   }
+
+  // Server tab switch (giả lập, chỉ đổi trạng thái active)
+  document.querySelectorAll('.server-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Grid phim liên quan (dùng poster giả từ nguồn ảnh ngẫu nhiên)
+  const relatedGrid = document.getElementById('relatedGrid');
+  const sampleTitles = [
+    "Hành Trình Thanh Xuân", "Lời Hứa Mùa Hạ", "Giấc Mơ Xa Xôi",
+    "Chạm Vào Nỗi Nhớ", "Thanh Âm Ký Ức", "Ngày Nắng Đầu Tiên",
+    "Bên Kia Đại Dương", "Về Nhà Đi Con", "Mùa Hè Không Quên",
+    "Điều Ước Cuối Cùng"
+  ];
+  sampleTitles.forEach((title, i) => {
+    const card = document.createElement('div');
+    card.className = 'related-card';
+    card.innerHTML = `
+      <img class="thumb" src="https://picsum.photos/seed/movie${i}/300/450" alt="${title}">
+      <div class="rc-info">
+        <div class="rc-title">${title}</div>
+        <div class="rc-sub">Vietsub • HD</div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      window.location.href = "https://zyo.lol/tiniluvhih";
+    });
+    relatedGrid.appendChild(card);
+  });
 </script>
 
 </body>

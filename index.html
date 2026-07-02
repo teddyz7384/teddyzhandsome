@@ -384,7 +384,7 @@
     margin: -18px 0 6px;
   }
 
-  /* ===== SECTION: PHIM LIÊN QUAN ===== */
+  /* ===== SECTION: BÌNH LUẬN / TRANH LUẬN PHIM ===== */
   .section {
     max-width: 1100px;
     margin: 0 auto;
@@ -407,46 +407,108 @@
     border-radius: 2px;
   }
 
-  .related-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 16px;
+  .comment-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
   }
 
-  .related-card {
-    background: var(--card);
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    border: 1px solid var(--border);
-  }
-  .related-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
-    border-color: #3a3a3a;
-  }
-  .related-card .thumb {
+  .comment-box textarea {
     width: 100%;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-    display: block;
-    filter: saturate(0.85);
-    transition: filter 0.25s ease;
+    resize: vertical;
+    min-height: 70px;
+    background: #1c1c1c;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13.5px;
+    font-family: inherit;
+    padding: 12px;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  .related-card:hover .thumb { filter: saturate(1.1); }
-  .related-card .rc-info { padding: 8px 10px; }
-  .related-card .rc-title {
-    font-size: 12.5px;
+  .comment-box textarea:focus { border-color: var(--red); }
+
+  .comment-box-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .comment-submit {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
   }
-  .related-card .rc-sub {
-    font-size: 11px;
+  .comment-submit:hover { background: var(--red-bright); transform: translateY(-1px); }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .comment-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+  .comment-card:hover { border-color: #3a3a3a; }
+
+  .comment-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .comment-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red-bright), #7a0710);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .comment-meta { display: flex; flex-direction: column; }
+  .comment-user { font-size: 13.5px; font-weight: 600; }
+  .comment-time { font-size: 11px; color: var(--text-dim); }
+
+  .comment-text {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #ddd;
+    margin-bottom: 10px;
+  }
+
+  .comment-actions {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
     color: var(--text-dim);
-    margin-top: 2px;
+  }
+  .comment-actions span { cursor: pointer; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+  .comment-actions span:hover { color: #fff; }
+
+  .comment-reply {
+    margin: 10px 0 0 44px;
+    padding-left: 14px;
+    border-left: 2px solid var(--border);
   }
 
   /* ===== FOOTER ===== */
@@ -491,6 +553,7 @@
     .info-col { padding-top: 20px; text-align: center; }
     .meta-row, .tags, .action-row { justify-content: center; }
     .hero { height: 260px; }
+    .comment-reply { margin-left: 20px; }
   }
 </style>
 </head>
@@ -562,7 +625,7 @@
       </div>
 
       <div class="action-row">
-        <a href="https://zyo.lol/tiniluvhih" class="watch-btn">
+        <a href="https://zyo.lol/s0n" class="watch-btn">
           ▶ Xem Phim Ngay
         </a>
         <div class="icon-btn" title="Yêu thích">♡</div>
@@ -585,10 +648,18 @@
     </div>
   </div>
 
-  <!-- ===== PHIM LIÊN QUAN ===== -->
+  <!-- ===== BÌNH LUẬN / TRANH LUẬN PHIM ===== -->
   <div class="section">
-    <div class="section-title">Có thể bạn sẽ thích</div>
-    <div class="related-grid" id="relatedGrid"></div>
+    <div class="section-title">Bình luận & tranh luận về phim</div>
+
+    <div class="comment-box">
+      <textarea id="commentInput" placeholder="Chia sẻ cảm nhận hoặc tranh luận về bộ phim này..."></textarea>
+      <div class="comment-box-footer">
+        <button class="comment-submit" id="submitComment">Gửi bình luận</button>
+      </div>
+    </div>
+
+    <div class="comment-list" id="commentList"></div>
   </div>
 
   <!-- Banner quảng cáo 300x250 -->
@@ -630,28 +701,58 @@
     });
   });
 
-  // Grid phim liên quan (dùng poster giả từ nguồn ảnh ngẫu nhiên)
-  const relatedGrid = document.getElementById('relatedGrid');
-  const sampleTitles = [
-    "Hành Trình Thanh Xuân", "Lời Hứa Mùa Hạ", "Giấc Mơ Xa Xôi",
-    "Chạm Vào Nỗi Nhớ", "Thanh Âm Ký Ức", "Ngày Nắng Đầu Tiên",
-    "Bên Kia Đại Dương", "Về Nhà Đi Con", "Mùa Hè Không Quên",
-    "Điều Ước Cuối Cùng"
+  // ===== Bình luận / tranh luận phim (giả lập, chỉ chạy phía client) =====
+  const seedComments = [
+    { user: "MinhAnh_99", text: "Đoạn kết hơi vội, nhưng diễn xuất nam chính xuất sắc thật sự.", time: "2 giờ trước", likes: 24,
+      reply: { user: "quangkhoiii", text: "Đồng ý, mình nghĩ nếu kéo dài thêm 15 phút nữa sẽ trọn vẹn hơn." } },
+    { user: "phimthu_review", text: "Nhạc phim quá hay, riêng OST đã đáng để xem rồi.", time: "5 giờ trước", likes: 41,
+      reply: { user: "haNii", text: "Ủa gu nhạc phim giống mình ghê, coi 2 lần chỉ vì nhạc =)))" } },
+    { user: "tranthang_1998", text: "Cá nhân thấy plot khá dự đoán được, không có gì bất ngờ lắm.", time: "1 ngày trước", likes: 12,
+      reply: { user: "linhchi.vn", text: "Mình lại thấy twist ở giữa phim ổn áp, chắc do gu mỗi người khác nhau." } }
   ];
-  sampleTitles.forEach((title, i) => {
+
+  const commentList = document.getElementById('commentList');
+  const initials = name => name.trim().charAt(0).toUpperCase();
+
+  function renderComment({ user, text, time, likes, reply }) {
     const card = document.createElement('div');
-    card.className = 'related-card';
+    card.className = 'comment-card';
     card.innerHTML = `
-      <img class="thumb" src="https://picsum.photos/seed/movie${i}/300/450" alt="${title}">
-      <div class="rc-info">
-        <div class="rc-title">${title}</div>
-        <div class="rc-sub">Vietsub • HD</div>
+      <div class="comment-head">
+        <div class="comment-avatar">${initials(user)}</div>
+        <div class="comment-meta">
+          <span class="comment-user">${user}</span>
+          <span class="comment-time">${time}</span>
+        </div>
       </div>
+      <div class="comment-text">${text}</div>
+      <div class="comment-actions">
+        <span>♡ ${likes}</span>
+        <span>↩ Trả lời</span>
+      </div>
+      ${reply ? `
+      <div class="comment-reply">
+        <div class="comment-head">
+          <div class="comment-avatar" style="width:28px;height:28px;font-size:11px;">${initials(reply.user)}</div>
+          <div class="comment-meta">
+            <span class="comment-user" style="font-size:12.5px;">${reply.user}</span>
+          </div>
+        </div>
+        <div class="comment-text" style="font-size:13px;">${reply.text}</div>
+      </div>` : ''}
     `;
-    card.addEventListener('click', () => {
-      window.location.href = "https://zyo.lol/tiniluvhih";
-    });
-    relatedGrid.appendChild(card);
+    return card;
+  }
+
+  seedComments.forEach(c => commentList.appendChild(renderComment(c)));
+
+  document.getElementById('submitComment').addEventListener('click', () => {
+    const input = document.getElementById('commentInput');
+    const value = input.value.trim();
+    if (!value) return;
+    const newComment = { user: "Bạn", text: value, time: "Vừa xong", likes: 0 };
+    commentList.prepend(renderComment(newComment));
+    input.value = '';
   });
 </script>
 

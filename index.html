@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xem Phim Online</title>
+<script src="https://pl30169604.effectivecpmnetwork.com/ff/9e/e3/ff9ee324fe786c36195495e07406418b.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -168,22 +169,91 @@
   .play-icon {
     font-size: 14px;
   }
+
+  /* ==== Khu vực quảng cáo ==== */
+  .ad-slot {
+    width: 360px;
+    background: #141414;
+    border: 1px dashed #333;
+    border-radius: 10px;
+    color: #666;
+    font-size: 12px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+  }
+
+  .ad-top {
+    width: 320px;
+    height: 50px;
+    margin-bottom: 14px;
+  }
+
+  .ad-bottom {
+    width: 300px;
+    height: 250px;
+    margin-top: 14px;
+  }
+
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+    position: relative;
+  }
 </style>
 </head>
 <body>
 
-  <div class="movie-card">
-    <div class="poster-wrap">
-      <span class="badge">HD • VIETSUB</span>
-      <img src="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg" alt="Movie Poster">
+  <div class="wrapper">
+
+    <!-- Banner quảng cáo trên (320x50) -->
+    <div class="ad-slot ad-top">
+      <script>
+        atOptions = {
+          'key' : '78f50889437df01487b89214f98a40c8',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/78f50889437df01487b89214f98a40c8/invoke.js"></script>
     </div>
-    <div class="movie-info">
-      <h2>Xem Phim Full HD</h2>
-      <p>1080p • Không quảng cáo • Cập nhật mới nhất</p>
-      <a href="https://zyo.lol/tiniluvhih" class="watch-btn">
-        <span class="play-icon">▶</span> Xem Phim Ngay
-      </a>
+
+    <div class="movie-card">
+      <div class="poster-wrap">
+        <span class="badge">HD • VIETSUB</span>
+        <img src="https://i.pinimg.com/736x/2e/76/c1/2e76c1c0e3778b568b1ad7ca5f841801.jpg" alt="Movie Poster">
+      </div>
+      <div class="movie-info">
+        <h2>Xem Phim Full HD</h2>
+        <p>1080p • Không quảng cáo • Cập nhật mới nhất</p>
+        <a href="https://zyo.lol/tiniluvhih" class="watch-btn">
+          <span class="play-icon">▶</span> Xem Phim Ngay
+        </a>
+      </div>
     </div>
+
+    <!-- Banner quảng cáo dưới (300x250) -->
+    <div class="ad-slot ad-bottom">
+      <script>
+        atOptions = {
+          'key' : 'e7553be99957155984917a739cdbfbe0',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script src="https://www.highperformanceformat.com/e7553be99957155984917a739cdbfbe0/invoke.js"></script>
+    </div>
+
   </div>
 
 <script>

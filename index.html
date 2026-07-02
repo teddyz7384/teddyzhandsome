@@ -148,6 +148,19 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .thumb.has-image .glyph,
+  .thumb.has-image .reel-lines{
+    display: none;
+  }
+
+  .thumb.has-image::after{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(12,10,8,0) 55%, rgba(12,10,8,0.85) 100%);
   }
 
   .thumb .glyph{
@@ -155,6 +168,11 @@
     color: rgba(242,233,220,0.18);
     font-style: italic;
     transform: rotate(-6deg);
+  }
+
+  .thumb-shade{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(12,10,8,0.15) 0%, rgba(12,10,8,0.05) 40%, rgba(12,10,8,0.65) 100%);
   }
 
   .thumb .reel-lines{
@@ -272,7 +290,7 @@
 <script>
   // Danh sách phim — chỉnh sửa tiêu đề/thể loại tại đây
   const movies = [
-    { title: "Ánh Sáng Cuối Đêm", genre: "Chính kịch", year: "2024", rating: "T16", cls: "p1" },
+    { title: "Ánh Sáng Cuối Đêm", genre: "Chính kịch", year: "2024", rating: "T16", cls: "p1", poster: "https://i.pinimg.com/736x/09/eb/23/09eb2394aeee5d976bf42c78309acb46.jpg" },
     { title: "Lối Về Sương Mù", genre: "Tâm lý", year: "2023", rating: "T13", cls: "p2" },
     { title: "Vực Thẳm Đỏ", genre: "Kinh dị", year: "2024", rating: "T18", cls: "p3" },
     { title: "Giấc Mơ Thành Phố", genre: "Lãng mạn", year: "2022", rating: "T13", cls: "p4" },
@@ -283,18 +301,22 @@
   ];
 
   // Link đích khi bấm vào bất kỳ phim nào
-  const TARGET_LINK = "https://zyo.lol/tiniluvhih";
+  const TARGET_LINK = "https://zyo.lol/S0n";
 
   const grid = document.getElementById("movie-grid");
 
   movies.forEach(m => {
     const btn = document.createElement("button");
     btn.className = `poster ${m.cls}`;
+    const hasPoster = !!m.poster;
+    const thumbStyle = hasPoster
+      ? `style="background-image:url('${m.poster}');background-size:cover;background-position:center;"`
+      : "";
     btn.innerHTML = `
-      <div class="thumb">
-        <div class="reel-lines"></div>
+      <div class="thumb" ${thumbStyle}>
+        ${hasPoster ? '<div class="thumb-shade"></div>' : '<div class="reel-lines"></div>'}
         <span class="rating">${m.rating}</span>
-        <span class="glyph">${m.title.charAt(0)}</span>
+        ${hasPoster ? '' : `<span class="glyph">${m.title.charAt(0)}</span>`}
         <div class="play">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>

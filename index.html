@@ -6,6 +6,7 @@
 <title>HỒ SƠ VỤ ÁN LỪA ĐẢO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --wood-dark:#241d16;
@@ -385,7 +386,7 @@
       <p class="badge-sub">Nhập thông tin để mở bảng hồ sơ vụ án lừa đảo của bạn.</p>
 
       <div class="auth-warning" id="authWarning">
-        Không tìm thấy kho dữ liệu (window.storage). Trang này cần chạy dưới dạng <strong>Claude Artifact</strong> đang hoạt động thì tính năng đăng nhập/lưu bài mới hoạt động — mở file trực tiếp bằng trình duyệt hoặc host ở nơi khác sẽ không lưu được dữ liệu.
+        Chưa cấu hình kho dữ liệu Supabase. Hãy mở file HTML, điền <code>SUPABASE_URL</code> và <code>SUPABASE_ANON_KEY</code> (lấy từ Project Settings → API trên Supabase), rồi deploy lại thì đăng nhập/lưu bài mới hoạt động.
       </div>
       <div class="auth-error" id="authError"></div>
 
@@ -504,16 +505,57 @@
   const CAT_LABEL = {suspect:"Kẻ lừa đảo", witness:"Nạn nhân/Tố giác", object:"Vật chứng", place:"TK/Địa điểm"};
   const CAT_CLASS = {suspect:"cat-suspect", witness:"cat-witness", object:"cat-object", place:"cat-place"};
 
-  // FIX: detect whether the artifact storage API actually exists in this runtime.
-  // Without this check, every storage.set() call throws inside handleAuthSubmit's
-  // outer try/catch, and the user only ever sees the generic
-  // "Có lỗi xảy ra khi kết nối kho dữ liệu" message with no way to know why.
-  function storageAvailable(){
-    return typeof window !== 'undefined'
-      && window.storage
-      && typeof window.storage.get === 'function'
-      && typeof window.storage.set === 'function';
+  // =========================================================================
+  // SUPABASE CONFIG — điền URL và anon key của project bạn vào đây.
+  // Lấy tại: Supabase Dashboard → Project Settings → API
+  // =========================================================================
+  const SUPABASE_URL = "https://avflvjsflltithyemljh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_f9yLUyA0hXjoo_OnSzxM8Q_gXJ3m_aO";
+
+  let supabaseClient = null;
+  function isConfigured(){
+    return SUPABASE_URL && !SUPABASE_URL.startsWith('YOUR_')
+        && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.startsWith('YOUR_');
   }
+  // FIX: window.storage chỉ tồn tại bên trong Claude Artifact, KHÔNG tồn tại
+  // khi deploy lên Vercel/host khác. Thay vào đó dùng Supabase (cloud DB thật)
+  // để đăng nhập và dữ liệu đồng bộ được trên mọi thiết bị, kể cả điện thoại.
+  function storageAvailable(){
+    if(!isConfigured()) return false;
+    if(!supabaseClient){
+      if(!window.supabase || typeof window.supabase.createClient !== 'function') return false;
+      try{
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }catch(e){ return false; }
+    }
+    return true;
+  }
+
+  // Lớp bọc thao tác dữ liệu qua Supabase, giữ nguyên logic phía trên
+  const storage = {
+    async getAllUsers(){
+      const { data, error } = await supabaseClient.from('cb_users').select('username,password_hash');
+      if(error) throw error;
+      const map = {};
+      (data||[]).forEach(u => map[u.username] = u.password_hash);
+      return map;
+    },
+    async createUser(username, hash){
+      const { error } = await supabaseClient.from('cb_users').insert({ username, password_hash: hash });
+      if(error) throw error;
+    },
+    async getBoard(username){
+      const { data, error } = await supabaseClient.from('cb_boards').select('data').eq('username', username).maybeSingle();
+      if(error) throw error;
+      return data ? data.data : null;
+    },
+    async setBoard(username, boardDataObj){
+      const { error } = await supabaseClient.from('cb_boards').upsert({
+        username, data: boardDataObj, updated_at: new Date().toISOString()
+      });
+      if(error) throw error;
+    }
+  };
 
   function toast(msg){
     const t = $('#toast');
@@ -569,12 +611,12 @@
   }
 
   // FIX: show a persistent, specific warning banner (instead of only a
-  // toast/error after the user tries to submit) as soon as we know storage
-  // isn't available, so the problem is obvious before the user even tries.
-  if(!storageAvailable()){
+  // toast/error after the user tries to submit) as soon as we know Supabase
+  // isn't configured, so the problem is obvious before the user even tries.
+  if(!isConfigured()){
     $('#authWarning').style.display = 'block';
     $('#authSubmitBtn').disabled = true;
-    $('#authSubmitBtn').textContent = 'Kho dữ liệu không khả dụng';
+    $('#authSubmitBtn').textContent = 'Chưa cấu hình Supabase';
   }
 
   $('#authSubmitBtn').addEventListener('click', handleAuthSubmit);
@@ -583,7 +625,7 @@
 
   async function handleAuthSubmit(){
     if(!storageAvailable()){
-      showAuthError('Không thể đăng nhập/tạo tài khoản: kho dữ liệu (window.storage) không khả dụng trong môi trường này. Hãy mở file này trong một Claude Artifact đang hoạt động.');
+      showAuthError('Không thể đăng nhập/tạo tài khoản: chưa cấu hình Supabase (SUPABASE_URL / SUPABASE_ANON_KEY) trong file, hoặc thư viện Supabase chưa tải được.');
       return;
     }
 
@@ -603,12 +645,7 @@
     btn.textContent = 'Đang xử lý...';
 
     try{
-      let users = {};
-      try{
-        const res = await window.storage.get('caseboard:users', true);
-        if(res && res.value) users = JSON.parse(res.value);
-      }catch(e){ /* key doesn't exist yet, treat as no users registered */ }
-
+      const users = await storage.getAllUsers();
       const hash = await simpleHash(password);
 
       if(authMode === 'signup'){
@@ -617,14 +654,12 @@
           btn.disabled = false; btn.textContent = originalText;
           return;
         }
-        users[username] = hash;
-        await window.storage.set('caseboard:users', JSON.stringify(users), true);
-        await window.storage.set('caseboard:data:'+username, JSON.stringify({
-          caseTitle: "Vụ lừa đảo qua mạng", status: "open", evidences: []
-        }), true);
+        await storage.createUser(username, hash);
+        const freshBoard = { caseTitle: "Vụ lừa đảo qua mạng", status: "open", evidences: [] };
+        await storage.setBoard(username, freshBoard);
         toast('Tạo hồ sơ thành công. Chào mừng điều tra viên ' + username + '!');
         currentUser = username;
-        boardData = { caseTitle: "Vụ lừa đảo qua mạng", status: "open", evidences: [] };
+        boardData = freshBoard;
         enterBoard();
       } else {
         if(!users[username] || users[username] !== hash){
@@ -633,12 +668,8 @@
           return;
         }
         currentUser = username;
-        try{
-          const res = await window.storage.get('caseboard:data:'+username, true);
-          boardData = res && res.value ? JSON.parse(res.value) : { caseTitle:"Vụ lừa đảo qua mạng", status:"open", evidences:[] };
-        }catch(e){
-          boardData = { caseTitle:"Vụ lừa đảo qua mạng", status:"open", evidences:[] };
-        }
+        const remoteBoard = await storage.getBoard(username);
+        boardData = remoteBoard || { caseTitle:"Vụ lừa đảo qua mạng", status:"open", evidences:[] };
         toast('Đăng nhập thành công. Chào mừng trở lại, ' + username + '!');
         enterBoard();
       }
@@ -646,7 +677,7 @@
       // FIX: give a more actionable message than the old generic string,
       // and log the real error so it's debuggable from devtools too.
       console.error('Storage error during auth:', e);
-      showAuthError('Có lỗi khi ghi/đọc kho dữ liệu. Nếu bạn đang chạy file này ngoài Claude (mở trực tiếp bằng trình duyệt, host riêng...), tính năng lưu trữ sẽ không hoạt động — hãy thử lại trong cửa sổ Artifact của Claude.');
+      showAuthError('Có lỗi khi ghi/đọc dữ liệu từ Supabase. Kiểm tra lại URL/anon key, và đã chạy đúng SQL tạo bảng cb_users/cb_boards chưa.');
     }finally{
       btn.disabled = false; btn.textContent = originalText;
     }
@@ -655,11 +686,11 @@
   async function saveBoardData(){
     if(!currentUser) return;
     if(!storageAvailable()){
-      toast('Không thể lưu: kho dữ liệu không khả dụng trong môi trường này.');
+      toast('Không thể lưu: Supabase chưa được cấu hình.');
       return;
     }
     try{
-      await window.storage.set('caseboard:data:'+currentUser, JSON.stringify(boardData), true);
+      await storage.setBoard(currentUser, boardData);
     }catch(e){
       console.error('Storage save failed', e);
       toast('Không thể lưu dữ liệu, vui lòng thử lại.');

@@ -429,12 +429,13 @@
 
   <div class="toolbar">
     <button class="btn btn-add" id="addBtn">＋ Thêm bằng chứng</button>
+    <button class="btn btn-ghost" id="arrangeBtn" style="border-color:rgba(255,255,255,.25);">⤢ Sắp xếp lại</button>
     <div class="chip active" data-filter="all">Tất cả</div>
     <div class="chip" data-filter="suspect">Kẻ lừa đảo</div>
     <div class="chip" data-filter="witness">Nạn nhân / Người tố giác</div>
     <div class="chip" data-filter="object">Vật chứng</div>
     <div class="chip" data-filter="place">Tài khoản / Địa điểm</div>
-    <span class="hint">Kéo thẻ để sắp xếp trên bảng · Chọn liên kết để nối dây đỏ</span>
+    <span class="hint">Bấm vào thẻ để xem & cập nhật · Kéo thẻ để tự sắp xếp · Chọn liên kết để nối dây đỏ</span>
   </div>
 
   <div id="board">
@@ -451,8 +452,8 @@
 <!-- ================= MODAL: ADD EVIDENCE ================= -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h3>Ghim bằng chứng mới</h3>
-    <p class="sub">Điền thông tin chi tiết để thêm vào bảng điều tra.</p>
+    <h3 id="modalHeading">Ghim bằng chứng mới</h3>
+    <p class="sub" id="modalSub">Điền thông tin chi tiết để thêm vào bảng điều tra.</p>
 
     <div class="form-row">
       <label>Tiêu đề</label>
@@ -489,6 +490,22 @@
     <div class="modal-actions">
       <button class="btn btn-cancel" id="cancelBtn">Huỷ</button>
       <button class="btn btn-submit" id="submitBtn">Ghim lên bảng</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: VIEW EVIDENCE ================= -->
+<div class="modal-overlay" id="viewModalOverlay">
+  <div class="modal" id="viewModal">
+    <span class="cat" id="viewCat" style="margin-bottom:10px;"></span>
+    <img id="viewImage" style="width:100%; max-height:340px; object-fit:contain; background:#00000010; border-radius:6px; margin-bottom:14px; display:none;">
+    <h3 id="viewTitle" style="font-family:'Caveat',cursive; font-size:24px; letter-spacing:0; margin-bottom:6px;"></h3>
+    <p id="viewDesc" style="font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 12px; white-space:pre-wrap;"></p>
+    <p style="font-size:11px; color:#8a7c60; margin:0 0 18px;" id="viewMeta"></p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="viewCloseBtn">Đóng</button>
+      <button class="btn btn-cancel" id="viewDeleteBtn" style="color:var(--red); border-color:rgba(161,42,36,.4);">Xoá</button>
+      <button class="btn btn-submit" id="viewUpdateBtn">Cập nhật</button>
     </div>
   </div>
 </div>
@@ -750,23 +767,54 @@
     });
   });
 
-  // ================= MODAL =================
+  // ================= MODAL (ADD / EDIT) =================
   let pendingImage = null;
+  let editingId = null; // null = adding new, otherwise id of evidence being edited
 
-  function openModal(){
-    $('#evTitle').value = '';
-    $('#evDesc').value = '';
-    $('#evImage').value = '';
-    $('#imgPreview').style.display = 'none';
-    pendingImage = null;
-    document.querySelector('input[name=evCat][value=suspect]').checked = true;
-    renderLinkList();
+  function openModal(evToEdit){
+    editingId = evToEdit ? evToEdit.id : null;
+
+    if(evToEdit){
+      $('#modalHeading').textContent = 'Cập nhật bằng chứng';
+      $('#modalSub').textContent = 'Chỉnh sửa thông tin rồi lưu lại thay đổi.';
+      $('#evTitle').value = evToEdit.title || '';
+      $('#evDesc').value = evToEdit.desc || '';
+      pendingImage = evToEdit.image || null;
+      if(pendingImage){
+        $('#imgPreview').src = pendingImage;
+        $('#imgPreview').style.display = 'block';
+      } else {
+        $('#imgPreview').style.display = 'none';
+      }
+      const radio = document.querySelector(`input[name=evCat][value="${evToEdit.category}"]`);
+      if(radio) radio.checked = true;
+      $('#submitBtn').textContent = 'Lưu thay đổi';
+    } else {
+      $('#modalHeading').textContent = 'Ghim bằng chứng mới';
+      $('#modalSub').textContent = 'Điền thông tin chi tiết để thêm vào bảng điều tra.';
+      $('#evTitle').value = '';
+      $('#evDesc').value = '';
+      $('#evImage').value = '';
+      $('#imgPreview').style.display = 'none';
+      pendingImage = null;
+      document.querySelector('input[name=evCat][value=suspect]').checked = true;
+      $('#submitBtn').textContent = 'Ghim lên bảng';
+    }
+
+    renderLinkList(editingId);
+    if(evToEdit && evToEdit.linkedTo){
+      evToEdit.linkedTo.forEach(id=>{
+        const cb = $(`#linkList input[value="${id}"]`);
+        if(cb) cb.checked = true;
+      });
+    }
+
     $('#modalOverlay').style.display = 'flex';
     setTimeout(()=>$('#evTitle').focus(), 50);
   }
-  function closeModal(){ $('#modalOverlay').style.display = 'none'; }
+  function closeModal(){ $('#modalOverlay').style.display = 'none'; editingId = null; }
 
-  $('#addBtn').addEventListener('click', openModal);
+  $('#addBtn').addEventListener('click', ()=> openModal(null));
   $('#cancelBtn').addEventListener('click', closeModal);
   $('#modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') closeModal(); });
 
@@ -794,13 +842,14 @@
     reader.readAsDataURL(file);
   });
 
-  function renderLinkList(){
+  function renderLinkList(excludeId){
     const container = $('#linkList');
-    if(boardData.evidences.length === 0){
+    const options = boardData.evidences.filter(ev => ev.id !== excludeId);
+    if(options.length === 0){
       container.innerHTML = '<div class="none">Chưa có bằng chứng nào khác để liên kết.</div>';
       return;
     }
-    container.innerHTML = boardData.evidences.map(ev=>`
+    container.innerHTML = options.map(ev=>`
       <label><input type="checkbox" value="${ev.id}"> ${escapeHtml(ev.title)} <span style="color:#8a7c60;">(${CAT_LABEL[ev.category]})</span></label>
     `).join('');
   }
@@ -817,6 +866,24 @@
     const desc = $('#evDesc').value.trim();
     const category = document.querySelector('input[name=evCat]:checked').value;
     const linked = Array.from($$('#linkList input:checked')).map(i=>i.value);
+
+    if(editingId){
+      // FIX (update feature): editing an existing card in place instead of
+      // only supporting brand-new cards.
+      const ev = boardData.evidences.find(e=>e.id===editingId);
+      if(ev){
+        ev.title = title;
+        ev.desc = desc;
+        ev.category = category;
+        ev.image = pendingImage;
+        ev.linkedTo = linked;
+      }
+      closeModal();
+      renderBoard();
+      await saveBoardData();
+      toast('Đã cập nhật bằng chứng.');
+      return;
+    }
 
     const boardEl = $('#board');
     const x = 40 + Math.random() * Math.max(80, (boardEl.clientWidth - 280));
@@ -897,17 +964,21 @@
     toast('Đã gỡ bằng chứng khỏi bảng.');
   }
 
-  // ---------- drag ----------
+  // ---------- drag (with click-vs-drag detection) ----------
   function startDrag(e, ev, card){
     if(e.target.closest('.del')) return;
     card.setPointerCapture(e.pointerId);
     const startX = e.clientX, startY = e.clientY;
     const origX = ev.x, origY = ev.y;
+    let moved = false;
     dragState = {ev, card};
 
     function onMove(ev2){
       const dx = ev2.clientX - startX;
       const dy = ev2.clientY - startY;
+      // FIX: distinguish a tap (open detail view) from an actual drag
+      // (reposition on the board) using a small movement threshold.
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
       ev.x = Math.max(0, origX + dx);
       ev.y = Math.max(0, origY + dy);
       card.style.left = ev.x + 'px';
@@ -918,11 +989,76 @@
       card.removeEventListener('pointermove', onMove);
       card.removeEventListener('pointerup', onUp);
       dragState = null;
-      saveBoardData();
+      if(moved){
+        saveBoardData();
+      } else {
+        openViewModal(ev);
+      }
     }
     card.addEventListener('pointermove', onMove);
     card.addEventListener('pointerup', onUp);
   }
+
+  // ================= VIEW / UPDATE MODAL =================
+  let viewingId = null;
+
+  function openViewModal(ev){
+    viewingId = ev.id;
+    $('#viewCat').textContent = CAT_LABEL[ev.category];
+    $('#viewCat').className = 'cat ' + CAT_CLASS[ev.category];
+    if(ev.image){
+      $('#viewImage').src = ev.image;
+      $('#viewImage').style.display = 'block';
+    } else {
+      $('#viewImage').style.display = 'none';
+    }
+    $('#viewTitle').textContent = ev.title;
+    $('#viewDesc').textContent = ev.desc || '(Không có mô tả)';
+    $('#viewMeta').textContent = `#${ev.id.slice(3,9)} · Thêm ngày ${new Date(ev.addedAt).toLocaleDateString('vi-VN')}`;
+    $('#viewModalOverlay').style.display = 'flex';
+  }
+  function closeViewModal(){
+    $('#viewModalOverlay').style.display = 'none';
+    viewingId = null;
+  }
+  $('#viewCloseBtn').addEventListener('click', closeViewModal);
+  $('#viewModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='viewModalOverlay') closeViewModal(); });
+  $('#viewDeleteBtn').addEventListener('click', ()=>{
+    if(!viewingId) return;
+    const id = viewingId;
+    closeViewModal();
+    deleteEvidence(id);
+  });
+  $('#viewUpdateBtn').addEventListener('click', ()=>{
+    if(!viewingId) return;
+    const ev = boardData.evidences.find(e=>e.id===viewingId);
+    closeViewModal();
+    if(ev) openModal(ev);
+  });
+
+  // ================= AUTO ARRANGE =================
+  // FIX (messy board): lays every card out in a clean grid instead of the
+  // random scatter used when a card is first added, so nothing overlaps
+  // and the red strings are easier to follow.
+  function arrangeBoard(){
+    if(boardData.evidences.length === 0){ toast('Chưa có bằng chứng nào để sắp xếp.'); return; }
+    const boardEl = $('#board');
+    const cardW = 210, gapX = 30, gapY = 46, topMargin = 40, leftMargin = 30;
+    const usableW = Math.max(cardW, boardEl.clientWidth - leftMargin*2);
+    const cols = Math.max(1, Math.floor((usableW + gapX) / (cardW + gapX)));
+
+    boardData.evidences.forEach((ev, i)=>{
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      ev.x = leftMargin + col * (cardW + gapX);
+      ev.y = topMargin + row * (220 + gapY); // 220 ~ approx card height incl. image
+    });
+
+    renderBoard();
+    saveBoardData();
+    toast('Đã sắp xếp lại bảng.');
+  }
+  $('#arrangeBtn').addEventListener('click', arrangeBoard);
 
   // ---------- red string drawing ----------
   function drawStrings(){

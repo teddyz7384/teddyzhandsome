@@ -345,7 +345,29 @@
     text-align:center;
   }
   .img-btn:hover{border-color:var(--red); color:var(--red);}
-  .img-preview{width:100%; max-height:150px; object-fit:cover; border-radius:5px; margin-top:8px; display:none;}
+  .img-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px;
+  }
+  .img-thumb{
+    position:relative; width:100%; aspect-ratio:1; border-radius:5px; overflow:hidden;
+    border:1.5px solid rgba(33,26,18,.15);
+  }
+  .img-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .img-thumb .remove-x{
+    position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%;
+    background:rgba(20,15,10,.72); color:#fff; border:none; cursor:pointer;
+    font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .img-thumb .remove-x:hover{background:var(--red);}
+  .img-count-hint{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+  .view-gallery{
+    display:flex; gap:8px; overflow-x:auto; margin-bottom:12px; padding-bottom:2px;
+  }
+  .view-gallery img{
+    width:56px; height:56px; object-fit:cover; border-radius:5px; cursor:pointer;
+    border:2px solid transparent; flex:0 0 auto;
+  }
+  .view-gallery img.active{border-color:var(--red);}
   .link-list{
     display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto;
     border:1px solid rgba(33,26,18,.15); border-radius:5px; padding:8px;
@@ -476,10 +498,11 @@
     </div>
 
     <div class="form-row">
-      <label>Ảnh bằng chứng (tuỳ chọn)</label>
-      <div class="img-btn" id="imgBtnLabel">📷 Bấm để chọn ảnh (ảnh chụp màn hình, biên lai chuyển khoản...)</div>
-      <input type="file" id="evImage" accept="image/*" style="display:none;">
-      <img id="imgPreview" class="img-preview">
+      <label>Ảnh bằng chứng (tối đa 6 ảnh)</label>
+      <div class="img-btn" id="imgBtnLabel">📷 Bấm để chọn ảnh (chọn nhiều lúc được) — hoặc dán ảnh bằng Ctrl+V</div>
+      <input type="file" id="evImage" accept="image/*" multiple style="display:none;">
+      <div class="img-grid" id="imgGrid"></div>
+      <div class="img-count-hint" id="imgCountHint"></div>
     </div>
 
     <div class="form-row" id="linkRow">
@@ -498,7 +521,8 @@
 <div class="modal-overlay" id="viewModalOverlay">
   <div class="modal" id="viewModal">
     <span class="cat" id="viewCat" style="margin-bottom:10px;"></span>
-    <img id="viewImage" style="width:100%; max-height:340px; object-fit:contain; background:#00000010; border-radius:6px; margin-bottom:14px; display:none;">
+    <img id="viewImage" style="width:100%; max-height:340px; object-fit:contain; background:#00000010; border-radius:6px; margin-bottom:8px; display:none;">
+    <div class="view-gallery" id="viewGallery"></div>
     <h3 id="viewTitle" style="font-family:'Caveat',cursive; font-size:24px; letter-spacing:0; margin-bottom:6px;"></h3>
     <p id="viewDesc" style="font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 12px; white-space:pre-wrap;"></p>
     <p style="font-size:11px; color:#8a7c60; margin:0 0 18px;" id="viewMeta"></p>
@@ -768,7 +792,8 @@
   });
 
   // ================= MODAL (ADD / EDIT) =================
-  let pendingImage = null;
+  const MAX_IMAGES = 6;
+  let pendingImages = []; // array of dataURLs, up to MAX_IMAGES
   let editingId = null; // null = adding new, otherwise id of evidence being edited
 
   function openModal(evToEdit){
@@ -779,13 +804,7 @@
       $('#modalSub').textContent = 'Chỉnh sửa thông tin rồi lưu lại thay đổi.';
       $('#evTitle').value = evToEdit.title || '';
       $('#evDesc').value = evToEdit.desc || '';
-      pendingImage = evToEdit.image || null;
-      if(pendingImage){
-        $('#imgPreview').src = pendingImage;
-        $('#imgPreview').style.display = 'block';
-      } else {
-        $('#imgPreview').style.display = 'none';
-      }
+      pendingImages = getEvImages(evToEdit).slice(0, MAX_IMAGES);
       const radio = document.querySelector(`input[name=evCat][value="${evToEdit.category}"]`);
       if(radio) radio.checked = true;
       $('#submitBtn').textContent = 'Lưu thay đổi';
@@ -795,12 +814,12 @@
       $('#evTitle').value = '';
       $('#evDesc').value = '';
       $('#evImage').value = '';
-      $('#imgPreview').style.display = 'none';
-      pendingImage = null;
+      pendingImages = [];
       document.querySelector('input[name=evCat][value=suspect]').checked = true;
       $('#submitBtn').textContent = 'Ghim lên bảng';
     }
 
+    renderImageGrid();
     renderLinkList(editingId);
     if(evToEdit && evToEdit.linkedTo){
       evToEdit.linkedTo.forEach(id=>{
@@ -814,32 +833,101 @@
   }
   function closeModal(){ $('#modalOverlay').style.display = 'none'; editingId = null; }
 
+  // FIX (data model): older cards only ever had a single `image` string;
+  // this reads both shapes so existing saved data keeps working.
+  function getEvImages(ev){
+    if(Array.isArray(ev.images)) return ev.images;
+    if(ev.image) return [ev.image];
+    return [];
+  }
+
   $('#addBtn').addEventListener('click', ()=> openModal(null));
   $('#cancelBtn').addEventListener('click', closeModal);
   $('#modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') closeModal(); });
 
+  function renderImageGrid(){
+    const grid = $('#imgGrid');
+    grid.innerHTML = pendingImages.map((src, i)=>`
+      <div class="img-thumb">
+        <img src="${src}">
+        <button type="button" class="remove-x" data-i="${i}" title="Bỏ ảnh này">✕</button>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.remove-x').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        pendingImages.splice(Number(btn.dataset.i), 1);
+        renderImageGrid();
+      });
+    });
+    const hint = $('#imgCountHint');
+    hint.textContent = pendingImages.length >= MAX_IMAGES
+      ? `Đã đạt tối đa ${MAX_IMAGES} ảnh.`
+      : `${pendingImages.length}/${MAX_IMAGES} ảnh.`;
+  }
+
+  // Resize one image File/Blob down to a reasonable width and add it to
+  // pendingImages (used by both the file picker and Ctrl+V paste).
+  function addImageFile(file){
+    return new Promise((resolve)=>{
+      if(pendingImages.length >= MAX_IMAGES){ resolve(false); return; }
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          const maxW = 420;
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          pendingImages.push(canvas.toDataURL('image/jpeg', 0.72));
+          resolve(true);
+        };
+        img.onerror = ()=> resolve(false);
+        img.src = ev.target.result;
+      };
+      reader.onerror = ()=> resolve(false);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function addImageFiles(fileList){
+    const files = Array.from(fileList || []).filter(f=> f.type && f.type.startsWith('image/'));
+    let addedAny = false, hitLimit = false;
+    for(const file of files){
+      if(pendingImages.length >= MAX_IMAGES){ hitLimit = true; break; }
+      const ok = await addImageFile(file);
+      if(ok) addedAny = true;
+    }
+    if(addedAny) renderImageGrid();
+    if(hitLimit) toast(`Chỉ nhận tối đa ${MAX_IMAGES} ảnh cho mỗi bằng chứng.`);
+  }
+
   $('#imgBtnLabel').addEventListener('click', ()=> $('#evImage').click());
   $('#evImage').addEventListener('change', (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev)=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const maxW = 420;
-        const scale = Math.min(1, maxW / img.width);
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        pendingImage = canvas.toDataURL('image/jpeg', 0.72);
-        $('#imgPreview').src = pendingImage;
-        $('#imgPreview').style.display = 'block';
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
+    addImageFiles(e.target.files);
+    e.target.value = '';
+  });
+
+  // FIX (Ctrl+V paste): while the add/edit modal is open, pasting an image
+  // (e.g. a screenshot copied to clipboard) adds it directly — no need to
+  // save the file first and use the file picker.
+  document.addEventListener('paste', (e)=>{
+    if($('#modalOverlay').style.display !== 'flex') return;
+    const items = e.clipboardData && e.clipboardData.items;
+    if(!items) return;
+    const imageFiles = [];
+    for(const item of items){
+      if(item.kind === 'file' && item.type.startsWith('image/')){
+        const f = item.getAsFile();
+        if(f) imageFiles.push(f);
+      }
+    }
+    if(imageFiles.length > 0){
+      e.preventDefault();
+      addImageFiles(imageFiles);
+    }
   });
 
   function renderLinkList(excludeId){
@@ -875,7 +963,8 @@
         ev.title = title;
         ev.desc = desc;
         ev.category = category;
-        ev.image = pendingImage;
+        ev.images = pendingImages.slice();
+        delete ev.image; // fully migrated to the `images` array
         ev.linkedTo = linked;
       }
       closeModal();
@@ -892,7 +981,7 @@
     const newEv = {
       id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
       title, desc, category,
-      image: pendingImage,
+      images: pendingImages.slice(),
       linkedTo: linked,
       x, y,
       addedAt: new Date().toISOString()
@@ -930,7 +1019,7 @@
         <button class="del" title="Xoá bằng chứng" data-id="${ev.id}">✕</button>
         <div class="tape"></div>
         <span class="cat ${CAT_CLASS[ev.category]}">${CAT_LABEL[ev.category]}</span>
-        ${ev.image ? `<img class="evidence-photo" src="${ev.image}">` : ''}
+        ${(()=>{ const imgs=getEvImages(ev); if(imgs.length===0) return ''; return `<div style="position:relative;"><img class="evidence-photo" src="${imgs[0]}">${imgs.length>1 ? `<span style="position:absolute; bottom:9px; right:2px; background:rgba(20,15,10,.75); color:#fff; font-size:10px; padding:2px 6px; border-radius:10px;">+${imgs.length-1}</span>` : ''}</div>`; })()}
         <h4>${escapeHtml(ev.title)}</h4>
         ${ev.desc ? `<p>${escapeHtml(ev.desc)}</p>` : ''}
         <div class="meta"><span>#${ev.id.slice(3,9)}</span><span>${new Date(ev.addedAt).toLocaleDateString('vi-VN')}</span></div>
@@ -1006,12 +1095,31 @@
     viewingId = ev.id;
     $('#viewCat').textContent = CAT_LABEL[ev.category];
     $('#viewCat').className = 'cat ' + CAT_CLASS[ev.category];
-    if(ev.image){
-      $('#viewImage').src = ev.image;
-      $('#viewImage').style.display = 'block';
+
+    const imgs = getEvImages(ev);
+    const mainImg = $('#viewImage');
+    const gallery = $('#viewGallery');
+    if(imgs.length > 0){
+      mainImg.src = imgs[0];
+      mainImg.style.display = 'block';
     } else {
-      $('#viewImage').style.display = 'none';
+      mainImg.style.display = 'none';
     }
+    if(imgs.length > 1){
+      gallery.style.display = 'flex';
+      gallery.innerHTML = imgs.map((src,i)=>`<img src="${src}" data-i="${i}" class="${i===0?'active':''}">`).join('');
+      gallery.querySelectorAll('img').forEach(thumb=>{
+        thumb.addEventListener('click', ()=>{
+          mainImg.src = thumb.src;
+          gallery.querySelectorAll('img').forEach(t=>t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+      });
+    } else {
+      gallery.style.display = 'none';
+      gallery.innerHTML = '';
+    }
+
     $('#viewTitle').textContent = ev.title;
     $('#viewDesc').textContent = ev.desc || '(Không có mô tả)';
     $('#viewMeta').textContent = `#${ev.id.slice(3,9)} · Thêm ngày ${new Date(ev.addedAt).toLocaleDateString('vi-VN')}`;
